@@ -3,7 +3,7 @@ import InputCustomizado from './InputCustomizado';
 import BotaoCustomizado from './BotaoCustomizado';
 import $ from 'jquery';
 
-export class FormularioAutor extends Component {
+class FormularioAutor extends Component {
     constructor(){
         super();
         this.state = {lista: [], nome:'', email:'', senha:''};
@@ -22,10 +22,10 @@ export class FormularioAutor extends Component {
             type: 'post',
             data: JSON.stringify({nome: this.state.nome, email: this.state.email, senha: this.state.senha}),
             success: function(resposta) {
-                this.setState({lista: resposta});
+                this.props.callBackAtualizaListagem(resposta);
             }.bind(this),
             error: function(resposta) {
-                console.log(resposta);
+                console.log('erro');
             }
         })
     }
@@ -52,6 +52,65 @@ export class FormularioAutor extends Component {
                     <InputCustomizado id='senha' type='password' name='senha' value={this.state.senha} label='Senha' onChange={this.setSenha}/>
                     <BotaoCustomizado type='submit' label='Gravar'/>
                 </form>
+            </div>
+        );
+    }
+}
+
+class ListaAutor extends Component{    
+    render(){
+        return(
+            <div>
+                            <table className="pure-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {this.props.lista.map(function(autor) {
+                                        return(
+                                            <tr key={autor.id}>
+                                                <td>{autor.nome}</td>
+                                                <td>{autor.email}</td>
+                                            </tr>
+                                        )
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+        );
+    }
+}
+
+export default class AutorBox extends Component{
+
+    constructor(){
+        super()
+        this.state = {lista:[]};
+        this.atualizaListagem = this.atualizaListagem.bind(this);
+    }
+    
+    componentDidMount() {
+        $.ajax({
+            url: 'https://cdc-react.herokuapp.com/api/autores',
+            dataType: 'json',
+            success: function(resposta) {
+                this.setState({lista:resposta});
+            }.bind(this)
+        })
+    }
+
+    atualizaListagem(novaLista){
+        this.setState({lista:novaLista});
+    }
+
+    render(){
+        return(
+            <div>
+                <FormularioAutor callBackAtualizaListagem={this.atualizaListagem}/>
+                <ListaAutor lista={this.state.lista}/>
             </div>
         );
     }
